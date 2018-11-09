@@ -6,8 +6,6 @@ var unique = require('node-uuid')
 
 var app = express();
 var serv = require('http').Server(app);
-//get the functions required to move players in the server.
-var physicsPlayer = require('./server/physics/playermovement.js');
 
 app.get('/',function(req, res) {
 	res.sendFile(__dirname + '/client/index.html');
@@ -24,7 +22,7 @@ var startTime = (new Date).getTime();
 var lastTime;
 var timeStep= 1/70; 
 
-var world = new p2.world({
+var world = new p2.World({
 	gravity : [0,0]
 });
 
@@ -147,7 +145,7 @@ function getRndInteger(min, max) {
 }
 
 function onEntername(data) {
-	socket.emit('join_game', {username: data.username, id: this.id});
+	this.emit('join_game', {username: data.username, id: this.id});
 }
 
 function onClientDisconnect() {
