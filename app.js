@@ -37,16 +37,20 @@ var game_setup = function() {
 //create a new game instance
 var game_instace = new game_setup()
 
+var Territory = function() {
+	this.territory = [];
+}
+
 //a player class in the server
-var Player = function (startX, startY, startAngle) {
+var Player = function (startX, startY, start_direction) {
 	this.id;
 	this.x = startX;
 	this.y = startY;
-	this.angle = startAngle;
-	this.speed = 500;
+	this.direction = start_direction;
+	this.territory = new Territory();
+	this.speed = 1;
 	//We need to intilaize with true.
 	this.sendData = true;
-	this.size = getRndInteger(40, 100); 
 	this.dead = false;
 }
 
@@ -66,13 +70,56 @@ function movement_handler() {
 	world.step(timeStep);
 }
 
-function onNewPlayer() {
+function onNewPlayer(data) {
 	//what to do when have new player
+	var new_player = new Player(data.x, data.y, data.direction);
+	new_player.id = this.id;
+	new_player.username = data.username;
+	
+	this.emit('create_player', {
+		id: new_player.id, x: new_player.x, y: new_player.y, 
+		start_direction: 1, start_territory: new_player.territory,
+		username: new_player.username
+	});
 
+	playerBody = new p2.Body ({
+		mass: 0,
+		position: [new_player.x,new_player.y],
+		fixedRotation: true
+	});
+
+	//add player body
+	new_player.playerBody = playerBody;
+	world.addBody(new_player.playerBody);
+
+	//tell this new player about existing players
+	for (var i = 0; i < player_list.length; i++) {
+		existing_player = player_list[i];
+		player_info = {
+			x: existing_player.x,
+			y: existing_player.y,
+			territory: existing_player.territory,
+			id: existing_player.id,
+			direction: existing_player.direction,
+			username: existing_player.username
+		};
+		this.emit('new_enemyPlayer', player_list);
+	}
+
+	//tell every body about this new player
+	this.broadcast.emit('new_enemyPlayer', {
+		id: new_player.id, x: new_player.x, y: new_player.y, 
+		direction: 1, territory: new_player.territory,
+		username: new_player.username
+	});
+
+	//add player to the list
+	player_list.push(new_player);
 }
 
 function onInputFired(data) {
 	//what to do when input received
+	
 }
 
 function onCollision(data) {

@@ -46,10 +46,10 @@ function createPlayer(data) {
 	player = game.add.graphics(0, 0);
 
 	//a player have
-	player.x = something; //x axis position of the player
-	player.y = something; //y axis position of the player
-	player.direction = something; //direction of the player
-	player.territory = something; //area taken by the player * need to figure out the data structure
+	player.x = data.x; //x axis position of the player
+	player.y = data.y; //y axis position of the player
+	player.direction = data.start_direction; //direction of the player
+	player.territory = data.start_territory; //area taken by the player * need to figure out the data structure
 	//add code here to create player graphics and values
 
 	//enable collision and when it makes a contact with another body, call player_coll
