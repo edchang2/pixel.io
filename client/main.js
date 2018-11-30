@@ -25,7 +25,8 @@ function onSocketConnected(data) {
 		username: data.username,
 		x: 0,
 		y: 0,
-		direction: 0
+		direction_x: 0
+		direction_y: 0
 	});
 }
 
@@ -48,25 +49,27 @@ function createPlayer(data) {
 	//a player have
 	player.x = data.x; //x axis position of the player
 	player.y = data.y; //y axis position of the player
-	player.direction = data.start_direction; //direction of the player
+	player.direction_x = data.start_direction_x; //direction of the player
+	player.direction_y = data.start_direction_y;
 	player.territory = data.start_territory; //area taken by the player * need to figure out the data structure
 	//add code here to create player graphics and values
 
 	//enable collision and when it makes a contact with another body, call player_coll
-	player.body.onBeginContact.add(player_coll, this); 
+	//player.body.onBeginContact.add(player_coll, this); 
 	
 	//camera follow
 	game.camera.follow(player, Phaser.Camera.FOLLOW_LOCKON, 0.5, 0.5);
 }
 
-var enemy_player = function (id, startx, starty, start_direction, start_territory) {
+var enemy_player = function (id, startx, starty, start_direction_x, start_direction_y, start_territory) {
 	//set initial values given by the server
 	this.x = startx;
 	this.y = starty;
 	this.id = id;
 
-	//lets call: up 1, right 2, down 3, left 4
-	this.start_direction = start_direction;
+	//get start directions
+	this.direction_x = start_direction_x;
+	this.direction_y = start_direction_y;
 
 	this.territory = start_territory;
 
@@ -83,7 +86,7 @@ var enemy_player = function (id, startx, starty, start_direction, start_territor
 function onNewEnemyPlayer(data) {
 	//enemy object 
 	console.log(data);
-	var new_enemy = new enemy_player(data.id, data.x, data.y, data.direction, data.territory);
+	var new_enemy = new enemy_player(data.id, data.x, data.y, data.direction_x, data.direction_y, data.territory);
 	enemies.push(new_enemy);
 }
 
@@ -212,19 +215,19 @@ main.prototype = {
 			//the server.
 			if (this.upKey.isDown) {
 				//Send up direction to the server 
-				socket.emit('input_fired', {direction: 1});
+				socket.emit('input_fired', {direction_x: 0, direction_y: -1});
 			} 
 			else if (this.rightKey.isDown) {
 				//Send up direction to the server 
-				socket.emit('input_fired', {direction: 2});
+				socket.emit('input_fired', {direction_x: 1, direction_y: 0});
 			}
 			else if (this.downKey.isDown) {
 				//Send up direction to the server 
-				socket.emit('input_fired', {direction: 3});
+				socket.emit('input_fired', {direction_x: 0, direction_y: 1});
 			}
 			else if (this.leftKey.isDown) {
 				//Send up direction to the server 
-				socket.emit('input_fired', {direction: 4});
+				socket.emit('input_fired', {direction_x: -1, direction_y: 0});
 			}
 		}
 	}

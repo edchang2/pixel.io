@@ -40,11 +40,12 @@ var Territory = function() {
 }
 
 //a player class in the server
-var Player = function (startX, startY, start_direction) {
+var Player = function (startX, startY, start_direction_x, start_direction_y) {
 	this.id;
 	this.x = startX;
 	this.y = startY;
-	this.direction = start_direction;
+	this.direction_x = start_direction_x;
+	this.direction_y = start_direction_y;
 	this.territory = new Territory();
 	this.speed = 1;
 	//We need to intilaize with true.
@@ -56,7 +57,6 @@ var Player = function (startX, startY, start_direction) {
 setInterval(heartbeat, 1000/60);
 
 function heartbeat() {
-
 	movement_handler();
 }
 
@@ -70,13 +70,13 @@ function movement_handler() {
 
 function onNewPlayer(data) {
 	//what to do when have new player
-	var new_player = new Player(data.x, data.y, data.direction);
+	var new_player = new Player(data.x, data.y, data.direction_x, data.direction_y);
 	new_player.id = this.id;
 	new_player.username = data.username;
 	
 	this.emit('create_player', {
 		id: new_player.id, x: new_player.x, y: new_player.y, 
-		start_direction: 1, start_territory: new_player.territory,
+		start_direction_x: this.direction_x, start_direction_y: this.direction_y, start_territory: new_player.territory,
 		username: new_player.username
 	});
 
@@ -98,7 +98,8 @@ function onNewPlayer(data) {
 			y: existing_player.y,
 			territory: existing_player.territory,
 			id: existing_player.id,
-			direction: existing_player.direction,
+			direction_x: existing_player.direction_x,
+			direction_y: existing_player.direction_y,
 			username: existing_player.username
 		};
 		this.emit('new_enemyPlayer', player_list);
@@ -107,7 +108,7 @@ function onNewPlayer(data) {
 	//tell every body about this new player
 	this.broadcast.emit('new_enemyPlayer', {
 		id: new_player.id, x: new_player.x, y: new_player.y, 
-		direction: 1, territory: new_player.territory,
+		direction_x: new_player.direction_x, direction_y: new_player.direction_y, territory: new_player.territory,
 		username: new_player.username
 	});
 
@@ -117,6 +118,9 @@ function onNewPlayer(data) {
 
 function onInputFired(data) {
 	//what to do when input received
+	player_to_move = find_playerid(this.id);
+	player_to_move.direction_x = data.direction_x;
+	player_to_move.direction_y = data.direction_y;
 	
 }
 
@@ -151,7 +155,6 @@ function onEntername(data) {
 function onClientDisconnect() {
 	//what to do when someone disconnect
 	console.log('disconnect');
-
 }
 
 function find_playerid(id) {
