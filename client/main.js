@@ -43,6 +43,7 @@ function onRemovePlayer(data) {
 }
 
 function createPlayer(data) {
+	var graphics = game.add.graphics(4000, 4000);
 	player = game.add.graphics(0, 0);
 
 	//a player have
@@ -51,10 +52,13 @@ function createPlayer(data) {
 	player.direction = data.start_direction; //direction of the player
 	player.territory = data.start_territory; //area taken by the player * need to figure out the data structure
 	//add code here to create player graphics and values
-
+player.lineStyle(0);
+player.beginFill(0x2366, 0.5);
+player.drawRect(200, 200, 50, 50);
+player.endFill();
 	//enable collision and when it makes a contact with another body, call player_coll
-	player.body.onBeginContact.add(player_coll, this); 
-	
+	//player.body.onBeginContact.add(player_coll, this);
+
 	//camera follow
 	game.camera.follow(player, Phaser.Camera.FOLLOW_LOCKON, 0.5, 0.5);
 }
@@ -81,7 +85,7 @@ var enemy_player = function (id, startx, starty, start_direction, start_territor
 //Server will tell us when a new enemy player connects to the server.
 //We create a new enemy in our game.
 function onNewEnemyPlayer(data) {
-	//enemy object 
+	//enemy object
 	console.log(data);
 	var new_enemy = new enemy_player(data.id, data.x, data.y, data.direction, data.territory);
 	enemies.push(new_enemy);
@@ -116,9 +120,9 @@ function onInputReceived(data) {
 	//we're forming a new pointer with the new position
 	var newPointer = {
 		x: data.x,
-		y: data.y, 
+		y: data.y,
 		worldX: data.x,
-		worldY: data.y, 
+		worldY: data.y,
 	}
 
 	//add code here to update player position and territory
@@ -143,7 +147,7 @@ function createLeaderBoard() {
 
 //leader board, don't need this for now
 function leader_update(data) {
-	//add code here to update leaderboard	
+	//add code here to update leaderboard
 }
 
 //define keys
@@ -166,7 +170,7 @@ main.prototype = {
 		game.physics.startSystem(Phaser.Physics.P2JS);
 		game.physics.p2.setBoundsToWorld(false, false, false, false, false);
 		game.physics.p2.gravity.y = 0;
-		game.physics.p2.applyGravity = false; 
+		game.physics.p2.applyGravity = false;
 		game.physics.p2.enableBody(game.physics.p2.walls, false);
 
 		this.leftKey = game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
@@ -175,7 +179,7 @@ main.prototype = {
 		this.downKey = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
 	},
 	create: function() {
-		game.stage.backgroundColor = 0xE1A193;
+		game.stage.backgroundColor = 0xFFFFFF;
 
 		console.log("client started");
 
@@ -206,24 +210,24 @@ main.prototype = {
 		createLeaderBoard();
 	},
 	update: function() {
-		//move the player when the player is made 
+		//move the player when the player is made
 		if (gameProperties.in_game) {
-			//we're checking for arrow key and sending this input to 
+			//we're checking for arrow key and sending this input to
 			//the server.
 			if (this.upKey.isDown) {
-				//Send up direction to the server 
+				//Send up direction to the server
 				socket.emit('input_fired', {direction: 1});
-			} 
+			}
 			else if (this.rightKey.isDown) {
-				//Send up direction to the server 
+				//Send up direction to the server
 				socket.emit('input_fired', {direction: 2});
 			}
 			else if (this.downKey.isDown) {
-				//Send up direction to the server 
+				//Send up direction to the server
 				socket.emit('input_fired', {direction: 3});
 			}
 			else if (this.leftKey.isDown) {
-				//Send up direction to the server 
+				//Send up direction to the server
 				socket.emit('input_fired', {direction: 4});
 			}
 		}
@@ -234,7 +238,7 @@ var gameBootstrapper = {
     init: function(gameContainerElementId){
 		game.state.add('main', main);
 		game.state.add('login', login);
-		game.state.start('login'); 
+		game.state.start('login');
     }
 };
 

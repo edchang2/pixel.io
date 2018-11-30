@@ -1,6 +1,6 @@
 var express = require('express');
 //require p2 physics library in the server.
-var p2 = require('p2'); 
+var p2 = require('p2');
 //get the node-uuid package for creating unique id
 var unique = require('node-uuid')
 
@@ -17,10 +17,10 @@ console.log("Server started.");
 
 var player_list = [];
 
-//needed for repeating updates 
+//needed for repeating updates
 var startTime = (new Date).getTime();
 var lastTime;
-var timeStep= 1/70; 
+var timeStep= 1/70;
 
 var world = new p2.World({
 	gravity : [0,0]
@@ -50,9 +50,10 @@ var Player = function (startX, startY, start_direction) {
 	//We need to intilaize with true.
 	this.sendData = true;
 	this.dead = false;
+
 }
 
-//call movement handler 60fps, calclulate 
+//call movement handler 60fps, calclulate
 setInterval(heartbeat, 1000/60);
 
 function heartbeat() {
@@ -73,9 +74,9 @@ function onNewPlayer(data) {
 	var new_player = new Player(data.x, data.y, data.direction);
 	new_player.id = this.id;
 	new_player.username = data.username;
-	
+
 	this.emit('create_player', {
-		id: new_player.id, x: new_player.x, y: new_player.y, 
+		id: new_player.id, x: new_player.x, y: new_player.y,
 		start_direction: 1, start_territory: new_player.territory,
 		username: new_player.username
 	});
@@ -106,7 +107,7 @@ function onNewPlayer(data) {
 
 	//tell every body about this new player
 	this.broadcast.emit('new_enemyPlayer', {
-		id: new_player.id, x: new_player.x, y: new_player.y, 
+		id: new_player.id, x: new_player.x, y: new_player.y,
 		direction: 1, territory: new_player.territory,
 		username: new_player.username
 	});
@@ -117,7 +118,7 @@ function onNewPlayer(data) {
 
 function onInputFired(data) {
 	//what to do when input received
-	
+
 }
 
 function onCollision(data) {
@@ -155,7 +156,7 @@ function onClientDisconnect() {
 }
 
 function find_playerid(id) {
-	//find player according to id 
+	//find player according to id
 	for (var i = 0; i < player_list.length; i++) {
 		if (player_list[i].id == id) {
 			return player_list[i];
@@ -170,7 +171,7 @@ io.sockets.on('connection', function(socket){
 	console.log("socket connected");
 
 	//when the player enters their name
-	socket.on('enter_name', onEntername); 
+	socket.on('enter_name', onEntername);
 
 	//when the player logs in
 	socket.on('logged_in', function(data){
