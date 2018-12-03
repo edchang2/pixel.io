@@ -25,7 +25,7 @@ function onSocketConnected(data) {
 		username: data.username,
 		x: 0,
 		y: 0,
-		direction_x: 0,
+		direction_x: 50,
 		direction_y: 0
 	});
 }
@@ -53,10 +53,16 @@ function createPlayer(data) {
 	player.direction_y = data.start_direction_y;
 	player.territory = data.start_territory; //area taken by the player * need to figure out the data structure
 	//add code here to create player graphics and values
+	game.physics.p2.enableBody(player, true);
 	player.lineStyle(0);
 	player.beginFill(0x2366, 0.5);
 	player.drawRect(200, 200, 50, 50);
 	player.endFill();
+
+	//set initial movement 
+	var velocity = 1;
+	player.body.velocity.x = player.direction_x * velocity;
+	player.body.velocity.y = player.direction_y * velocity;
 
 	//enable collision and when it makes a contact with another body, call player_coll
 	//player.body.onBeginContact.add(player_coll, this); 

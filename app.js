@@ -69,14 +69,14 @@ function movement_handler() {
 }
 
 function onNewPlayer(data) {
-	//what to do when have new player
+	//what to do when have new player 
 	var new_player = new Player(data.x, data.y, data.direction_x, data.direction_y);
 	new_player.id = this.id;
 	new_player.username = data.username;
 	
 	this.emit('create_player', {
 		id: new_player.id, x: new_player.x, y: new_player.y, 
-		start_direction_x: this.direction_x, start_direction_y: this.direction_y, start_territory: new_player.territory,
+		start_direction_x: data.direction_x, start_direction_y: data.direction_y, start_territory: new_player.territory,
 		username: new_player.username
 	});
 
@@ -121,6 +121,7 @@ function onInputFired(data) {
 	player_to_move = find_playerid(this.id);
 	player_to_move.direction_x = data.direction_x;
 	player_to_move.direction_y = data.direction_y;
+
 	
 }
 
