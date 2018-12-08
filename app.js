@@ -193,6 +193,10 @@ function onEntername(data) {
 
 function onClientDisconnect() {
 	//what to do when someone disconnect
+	var to_delete = find_playerid(this.id);
+	if (to_delete) {
+		player_list.splice(player_list.indexOf(to_delete), 1)
+	}
 	console.log('disconnect');
 }
 
