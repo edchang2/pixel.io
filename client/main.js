@@ -11,6 +11,7 @@ var gameProperties = {
 	gameHeight: 4000,
 	game_elemnt: "gameDiv",
 	in_game: false,
+	speed: 50
 };
 
 var main = function (game) {
@@ -25,7 +26,7 @@ function onSocketConnected(data) {
 		username: data.username,
 		x: 0,
 		y: 0,
-		direction_x: 50,
+		direction_x: 0,
 		direction_y: 0
 	});
 }
@@ -54,15 +55,11 @@ function createPlayer(data) {
 	player.territory = data.start_territory; //area taken by the player * need to figure out the data structure
 	//add code here to create player graphics and values
 	game.physics.p2.enableBody(player, true);
+
 	player.lineStyle(0);
 	player.beginFill(0x2366, 0.5);
-	player.drawRect(200, 200, 50, 50);
+	player.drawRect(data.x, data.y, 50, 50);
 	player.endFill();
-
-	//set initial movement 
-	var velocity = 1;
-	player.body.velocity.x = player.direction_x * velocity;
-	player.body.velocity.y = player.direction_y * velocity;
 
 	//enable collision and when it makes a contact with another body, call player_coll
 	//player.body.onBeginContact.add(player_coll, this); 
@@ -111,9 +108,7 @@ function onEnemyMove(data) {
 
 	var newPointer = {
 		x: data.x,
-		y: data.y,
-		worldX: data.x,
-		worldY: data.y,
+		y: data.y
 	}
 
 	//check if the server enemy size is not equivalent to the client
@@ -127,14 +122,10 @@ function onEnemyMove(data) {
 //receiving the calculated position of this player from the server, make updates
 function onInputReceived(data) {
 	//we're forming a new pointer with the new position
-	var newPointer = {
-		x: data.x,
-		y: data.y, 
-		worldX: data.x,
-		worldY: data.y, 
-	}
 
 	//add code here to update player position and territory
+	player.body.velocity.x = data.velocity_x;
+	player.body.velocity.y = data.velocity_y;
 }
 
 //receiving territory from the server, make updates
@@ -159,11 +150,10 @@ function leader_update(data) {
 	//add code here to update leaderboard	
 }
 
-//define keys
-var leftKey;
-var rightKey;
-var upKey;
-var downKey;
+//define directionData
+var directionData = {
+	direction_x: 0, direction_y: 0
+}
 
 main.prototype = {
 	init: function(username) {
@@ -181,14 +171,11 @@ main.prototype = {
 		game.physics.p2.gravity.y = 0;
 		game.physics.p2.applyGravity = false; 
 		game.physics.p2.enableBody(game.physics.p2.walls, false);
-
-		this.leftKey = game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
-		this.rightKey = game.input.keyboard.addKey(Phaser.Keyboard.RIGHT);
-		this.upKey = game.input.keyboard.addKey(Phaser.Keyboard.UP);
-		this.downKey = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
 	},
 	create: function() {
 		game.stage.backgroundColor = 0xE1A193;
+
+		cursors = game.input.keyboard.createCursorKeys();
 
 		console.log("client started");
 
@@ -216,32 +203,75 @@ main.prototype = {
 		//check for leaderboard
 		socket.on('update_leaderboard', leader_update);
 
-		createLeaderBoard();
+		this.game.input.keyboard.onDownCallback = function(e) {   
+		//for demonstration, next line prints the keyCode to console 
+			console.log(e.keyCode);   
+		//here comes your stuff, you might check for certain key, or just trigger a function  
+			if (e.keyCode == Phaser.Keyboard.UP) {
+				goUp();
+			} else if (e.keyCode == Phaser.Keyboard.DOWN) {
+				goDown();
+			} else if (e.keyCode == Phaser.Keyboard.LEFT) {
+				goLeft();
+			} else if (e.keyCode == Phaser.Keyboard.RIGHT) {
+				goRight();
+			}
+		}
 	},
 	update: function() {
 		//move the player when the player is made 
 		if (gameProperties.in_game) {
 			//we're checking for arrow key and sending this input to 
 			//the server.
-			if (this.upKey.isDown) {
-				//Send up direction to the server 
-				socket.emit('input_fired', {direction_x: 0, direction_y: -1});
-			} 
-			else if (this.rightKey.isDown) {
-				//Send up direction to the server 
-				socket.emit('input_fired', {direction_x: 1, direction_y: 0});
-			}
-			else if (this.downKey.isDown) {
-				//Send up direction to the server 
-				socket.emit('input_fired', {direction_x: 0, direction_y: 1});
-			}
-			else if (this.leftKey.isDown) {
-				//Send up direction to the server 
-				socket.emit('input_fired', {direction_x: -1, direction_y: 0});
-			}
+			//socket.emit('input_fired', directionData);
+			//if (cursors.left.isDown) {
+			//	console.log('left');
+			//} else if (cursors.right.isDown) {
+			//	console.log('right');
+			//} else if (cursors.down.isDown) {
+			//	console.log('down');
+			//} else if (cursors.up.isDown) {
+			//	console.log('up');
+			//}
 		}
 	}
 };
+
+function goLeft() {
+	console.log('left');
+	//Send up direction to the server 
+	directionData = {
+		direction_x: -1, direction_y: 0
+	}
+	socket.emit('input_fired', directionData);
+}
+
+function goRight() {
+	console.log('right');
+	//Send up direction to the server 
+	directionData = {
+		direction_x: 1, direction_y: 0
+	}
+	socket.emit('input_fired', directionData);
+}
+
+function goDown() {
+	console.log('down');
+	//Send up direction to the server 
+	directionData = {
+		direction_x: 0, direction_y: 1
+	}
+	socket.emit('input_fired', directionData);
+}
+
+function goUp() {
+	console.log('up');
+	//Send up direction to the server 
+	directionData = {
+		direction_x: 0, direction_y: -1
+	}
+	socket.emit('input_fired', directionData);
+}
 
 var gameBootstrapper = {
     init: function(gameContainerElementId){

@@ -47,7 +47,7 @@ var Player = function (startX, startY, start_direction_x, start_direction_y) {
 	this.direction_x = start_direction_x;
 	this.direction_y = start_direction_y;
 	this.territory = new Territory();
-	this.speed = 1;
+	this.speed = 50;
 	//We need to intilaize with true.
 	this.sendData = true;
 	this.dead = false;
@@ -122,7 +122,45 @@ function onInputFired(data) {
 	player_to_move.direction_x = data.direction_x;
 	player_to_move.direction_y = data.direction_y;
 
-	
+	if (!player_to_move || player_to_move.dead) {
+		return;
+		console.log('no player'); 
+	}
+
+	//when sendData is true, we send the data back to client. 
+	//if (!player_to_move.sendData) {
+	//	return;
+	//}
+	//
+	////every 50ms, we send the data. 
+	//setTimeout(function() {player_to_move.sendData = true}, 50);
+	////we set sendData to false when we send the data. 
+	//player_to_move.sendData = false;
+
+	//
+	player_to_move.playerBody.velocity = [player_to_move.speed * data.direction_x, player_to_move.speed * data.direction_y];
+
+	player_to_move.x = player_to_move.playerBody.position[0];
+	player_to_move.y = player_to_move.playerBody.position[1];
+
+	var info = {		
+		velocity_x: player_to_move.playerBody.velocity[0],
+		velocity_y: player_to_move.playerBody.velocity[1]
+	}
+
+	//tell player about movement
+	this.emit('input_received', info);
+
+	//tell enemies about movement
+	var moveData = {
+		id: player_to_move.id,
+		x: player_to_move.x,
+		y: player_to_move.y,
+		velocity_x: player_to_move.playerBody.velocity[0],
+		velocity_y: player_to_move.playerBody.velocity[1]
+	}
+
+	this.broadcast.emit('enemy_move', moveData);
 }
 
 function onCollision(data) {
