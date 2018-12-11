@@ -54,10 +54,14 @@ var Player = function (startX, startY, start_direction_x, start_direction_y) {
 }
 
 //call movement handler 60fps, calclulate 
-setInterval(heartbeat, 1000/60);
+setInterval(heartbeat, 1000/5);
 
 function heartbeat() {
-	movement_handler();
+	//movement_handler();
+	var info = {
+		move: true
+	}
+	this.emit('move', info);
 }
 
 function movement_handler() {
@@ -66,6 +70,7 @@ function movement_handler() {
 	var dt = lastTime ? (tiemElapsed - lastTime) / 1000 : 0;
 	dt = Math.min(1 / 10, dt);
 	world.step(timeStep);
+	
 }
 
 function onNewPlayer(data) {
@@ -124,7 +129,6 @@ function onInputFired(data) {
 
 	if (!player_to_move || player_to_move.dead) {
 		return;
-		console.log('no player'); 
 	}
 
 	//when sendData is true, we send the data back to client. 
@@ -137,15 +141,9 @@ function onInputFired(data) {
 	////we set sendData to false when we send the data. 
 	//player_to_move.sendData = false;
 
-	//
-	player_to_move.playerBody.velocity = [player_to_move.speed * data.direction_x, player_to_move.speed * data.direction_y];
-
-	player_to_move.x = player_to_move.playerBody.position[0];
-	player_to_move.y = player_to_move.playerBody.position[1];
-
-	var info = {		
-		velocity_x: player_to_move.playerBody.velocity[0],
-		velocity_y: player_to_move.playerBody.velocity[1]
+	var info = {
+		direction_x: data.direction_x,
+		direction_y: data.direction_y
 	}
 
 	//tell player about movement
@@ -154,10 +152,8 @@ function onInputFired(data) {
 	//tell enemies about movement
 	var moveData = {
 		id: player_to_move.id,
-		x: player_to_move.x,
-		y: player_to_move.y,
-		velocity_x: player_to_move.playerBody.velocity[0],
-		velocity_y: player_to_move.playerBody.velocity[1]
+		direction_x: data.direction_x,
+		direction_y: data.direction_y
 	}
 
 	this.broadcast.emit('enemy_move', moveData);
