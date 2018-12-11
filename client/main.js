@@ -11,7 +11,7 @@ var gameProperties = {
 	gameHeight: 4000,
 	game_elemnt: "gameDiv",
 	in_game: false,
-	speed: 100
+	speed: 200
 };
 
 var main = function (game) {
@@ -55,19 +55,18 @@ function createPlayer(data) {
 	player.territory = data.start_territory; //area taken by the player * need to figure out the data structure
 	//add code here to create player graphics and values
 	game.physics.p2.enableBody(player, true);
+	player.body.fixedRotation = true;
 	player.body.damping = 0;
 	player.body.mass=0.1
 	player.lineStyle(0);
 	player.beginFill(0x2366, 0.5);
-	player.drawRect(game.width/2,game.height/2, 50, 50);
+	console.log(player.x + " " + player.y);
+	player.drawRect(player.x, player.y, 50, 50);
 	player.endFill();
 
 	//enable collision and when it makes a contact with another body, call player_coll
 	//player.body.onBeginContact.add(player_coll, this);
 
-	//camera follow
-	game.camera.x=game.width/2;
-	game.camera.y=game.height/2;
 }
 
 var enemy_player = function (id, startx, starty, start_direction_x, start_direction_y, start_territory) {
@@ -169,10 +168,9 @@ main.prototype = {
 		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 		game.world.setBounds(0, 0, gameProperties.gameWidth, gameProperties.gameHeight);
 		game.physics.startSystem(Phaser.Physics.P2JS);
-		game.physics.p2.setBoundsToWorld(true, true, true, true, false);
 		game.physics.p2.gravity.y = 0;
 		game.physics.p2.applyGravity = false;
-		game.physics.p2.enableBody(game.physics.p2.walls, false);
+		game.physics.p2.enableBody(game.physics.p2.walls, true);
 	},
 	create: function() {
 		game.stage.backgroundColor = 0xE1A193;
