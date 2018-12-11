@@ -11,7 +11,7 @@ var gameProperties = {
 	gameHeight: 4000,
 	game_elemnt: "gameDiv",
 	in_game: false,
-	speed: 50
+	speed: 100
 };
 
 var main = function (game) {
@@ -172,7 +172,7 @@ main.prototype = {
 		game.physics.p2.setBoundsToWorld(false, false, false, false, false);
 		game.physics.p2.gravity.y = 0;
 		game.physics.p2.applyGravity = false;
-		game.physics.p2.enableBody(game.physics.p2.walls, );
+		game.physics.p2.enableBody(game.physics.p2.walls, false);
 	},
 	create: function() {
 		game.stage.backgroundColor = 0xE1A193;
