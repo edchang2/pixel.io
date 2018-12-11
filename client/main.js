@@ -169,7 +169,7 @@ main.prototype = {
 		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 		game.world.setBounds(0, 0, gameProperties.gameWidth, gameProperties.gameHeight);
 		game.physics.startSystem(Phaser.Physics.P2JS);
-		game.physics.p2.setBoundsToWorld(true, true, true, true, true);
+		game.physics.p2.setBoundsToWorld(true, true, true, true, false);
 		game.physics.p2.gravity.y = 0;
 		game.physics.p2.applyGravity = false;
 		game.physics.p2.enableBody(game.physics.p2.walls, false);
