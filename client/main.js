@@ -55,15 +55,16 @@ function createPlayer(data) {
 	player.territory = data.start_territory; //area taken by the player * need to figure out the data structure
 	//add code here to create player graphics and values
 	game.physics.p2.enableBody(player, true);
-
+	player.body.damping = 0;
+	player.body.mass=0.1
 	player.lineStyle(0);
 	player.beginFill(0x2366, 0.5);
 	player.drawRect(data.x, data.y, 50, 50);
 	player.endFill();
 
 	//enable collision and when it makes a contact with another body, call player_coll
-	//player.body.onBeginContact.add(player_coll, this); 
-	
+	//player.body.onBeginContact.add(player_coll, this);
+
 	//camera follow
 	game.camera.follow(player, Phaser.Camera.FOLLOW_LOCKON, 0.5, 0.5);
 }
@@ -91,7 +92,7 @@ var enemy_player = function (id, startx, starty, start_direction_x, start_direct
 //Server will tell us when a new enemy player connects to the server.
 //We create a new enemy in our game.
 function onNewEnemyPlayer(data) {
-	//enemy object 
+	//enemy object
 	console.log(data);
 	var new_enemy = new enemy_player(data.id, data.x, data.y, data.direction_x, data.direction_y, data.territory);
 	enemies.push(new_enemy);
@@ -147,7 +148,7 @@ function createLeaderBoard() {
 
 //leader board, don't need this for now
 function leader_update(data) {
-	//add code here to update leaderboard	
+	//add code here to update leaderboard
 }
 
 //define directionData
@@ -169,7 +170,7 @@ main.prototype = {
 		game.physics.startSystem(Phaser.Physics.P2JS);
 		game.physics.p2.setBoundsToWorld(false, false, false, false, false);
 		game.physics.p2.gravity.y = 0;
-		game.physics.p2.applyGravity = false; 
+		game.physics.p2.applyGravity = false;
 		game.physics.p2.enableBody(game.physics.p2.walls, false);
 	},
 	create: function() {
@@ -203,10 +204,10 @@ main.prototype = {
 		//check for leaderboard
 		socket.on('update_leaderboard', leader_update);
 
-		this.game.input.keyboard.onDownCallback = function(e) {   
-		//for demonstration, next line prints the keyCode to console 
-			console.log(e.keyCode);   
-		//here comes your stuff, you might check for certain key, or just trigger a function  
+		this.game.input.keyboard.onDownCallback = function(e) {
+		//for demonstration, next line prints the keyCode to console
+			console.log(e.keyCode);
+		//here comes your stuff, you might check for certain key, or just trigger a function
 			if (e.keyCode == Phaser.Keyboard.UP) {
 				goUp();
 			} else if (e.keyCode == Phaser.Keyboard.DOWN) {
@@ -219,9 +220,9 @@ main.prototype = {
 		}
 	},
 	update: function() {
-		//move the player when the player is made 
+		//move the player when the player is made
 		if (gameProperties.in_game) {
-			//we're checking for arrow key and sending this input to 
+			//we're checking for arrow key and sending this input to
 			//the server.
 			//socket.emit('input_fired', directionData);
 			//if (cursors.left.isDown) {
@@ -239,7 +240,7 @@ main.prototype = {
 
 function goLeft() {
 	console.log('left');
-	//Send up direction to the server 
+	//Send up direction to the server
 	directionData = {
 		direction_x: -1, direction_y: 0
 	}
@@ -248,7 +249,7 @@ function goLeft() {
 
 function goRight() {
 	console.log('right');
-	//Send up direction to the server 
+	//Send up direction to the server
 	directionData = {
 		direction_x: 1, direction_y: 0
 	}
@@ -257,7 +258,7 @@ function goRight() {
 
 function goDown() {
 	console.log('down');
-	//Send up direction to the server 
+	//Send up direction to the server
 	directionData = {
 		direction_x: 0, direction_y: 1
 	}
@@ -266,7 +267,7 @@ function goDown() {
 
 function goUp() {
 	console.log('up');
-	//Send up direction to the server 
+	//Send up direction to the server
 	directionData = {
 		direction_x: 0, direction_y: -1
 	}
@@ -277,7 +278,7 @@ var gameBootstrapper = {
     init: function(gameContainerElementId){
 		game.state.add('main', main);
 		game.state.add('login', login);
-		game.state.start('login'); 
+		game.state.start('login');
     }
 };
 
