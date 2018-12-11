@@ -166,10 +166,10 @@ main.prototype = {
 	},
 	preload: function() {
 		game.stage.disableVisibilityChange = true;
-		game.scale.scaleMode = Phaser.ScaleManager.RESIZE;
+		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 		game.world.setBounds(0, 0, gameProperties.gameWidth, gameProperties.gameHeight);
 		game.physics.startSystem(Phaser.Physics.P2JS);
-		game.physics.p2.setBoundsToWorld(false, false, false, false, false);
+		game.physics.p2.setBoundsToWorld(true, true, true, true, true);
 		game.physics.p2.gravity.y = 0;
 		game.physics.p2.applyGravity = false;
 		game.physics.p2.enableBody(game.physics.p2.walls, false);
@@ -221,21 +221,6 @@ main.prototype = {
 		}
 	},
 	update: function() {
-		//move the player when the player is made
-		if (gameProperties.in_game) {
-			//we're checking for arrow key and sending this input to
-			//the server.
-			//socket.emit('input_fired', directionData);
-			//if (cursors.left.isDown) {
-			//	console.log('left');
-			//} else if (cursors.right.isDown) {
-			//	console.log('right');
-			//} else if (cursors.down.isDown) {
-			//	console.log('down');
-			//} else if (cursors.up.isDown) {
-			//	console.log('up');
-			//}
-		}
 	}
 };
 
