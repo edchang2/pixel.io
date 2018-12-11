@@ -59,14 +59,15 @@ function createPlayer(data) {
 	player.body.mass=0.1
 	player.lineStyle(0);
 	player.beginFill(0x2366, 0.5);
-	player.drawRect(data.x, data.y, 50, 50);
+	player.drawRect(game.width/2,game.height/2, 50, 50);
 	player.endFill();
 
 	//enable collision and when it makes a contact with another body, call player_coll
 	//player.body.onBeginContact.add(player_coll, this);
 
 	//camera follow
-	game.camera.follow(player, Phaser.Camera.FOLLOW_LOCKON, 0.5, 0.5);
+	game.camera.x=game.width/2;
+	game.camera.y=game.height/2;
 }
 
 var enemy_player = function (id, startx, starty, start_direction_x, start_direction_y, start_territory) {
@@ -166,12 +167,12 @@ main.prototype = {
 	preload: function() {
 		game.stage.disableVisibilityChange = true;
 		game.scale.scaleMode = Phaser.ScaleManager.RESIZE;
-		game.world.setBounds(0, 0, gameProperties.gameWidth, gameProperties.gameHeight, false, false, false, false);
+		game.world.setBounds(0, 0, gameProperties.gameWidth, gameProperties.gameHeight);
 		game.physics.startSystem(Phaser.Physics.P2JS);
 		game.physics.p2.setBoundsToWorld(false, false, false, false, false);
 		game.physics.p2.gravity.y = 0;
 		game.physics.p2.applyGravity = false;
-		game.physics.p2.enableBody(game.physics.p2.walls, false);
+		game.physics.p2.enableBody(game.physics.p2.walls, );
 	},
 	create: function() {
 		game.stage.backgroundColor = 0xE1A193;
