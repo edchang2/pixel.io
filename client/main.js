@@ -55,7 +55,7 @@ function createPlayer(data) {
 
 	playerCollisionGroup = game.physics.p2.createCollisionGroup();
 
-	player = game.add.graphics(0, 0);
+	player = game.add.graphics(data.x, data.y);
 
 	//a player have
 	player.x = data.x; //x axis position of the player
@@ -79,7 +79,7 @@ function createPlayer(data) {
 	player.lineStyle(0);
 	player.beginFill(0x2366, 0.5);
 	console.log(player.x + " " + player.y);
-	player.drawRect(player.x, player.y, 50, 50);
+	player.drawRect(0, 0, 50, 50);
 	player.endFill();
 	game.physics.p2.setBoundsToWorld(true, true, true, true, true);
 	player.body.setCollisionGroup(playerCollisionGroup);
@@ -99,9 +99,9 @@ function createPlayer(data) {
 	player.line.endFill();
 
 	//add some label
-	var player_position_string = (player.position.x)|0 + " " + (player.position.y)|0;
-	label_position = game.add.text(player.position.x, player.position.y, player_position_string, style);
-	player.addChild(label_position);
+	//var player_position_string = (player.position.x)|0 + " " + (player.position.y)|0;
+	//label_position = game.add.text(player.position.x, player.position.y, player_position_string, style);
+	//player.addChild(label_position);
 
 	//enable collision and when it makes a contact with another body, call player_coll
 	player.body.createBodyCallback(game.physics.p2.boundsCollisionGroup, play_col, this);
@@ -245,7 +245,7 @@ main.prototype = {
 	preload: function() {
 		game.stage.disableVisibilityChange = true;
 		game.scale.scaleMode = Phaser.ScaleManager.AUTO;
-		game.world.setBounds(0, 0, gameProperties.gameWidth, gameProperties.gameHeight, true, true, true, true, true);
+		//game.world.setBounds(0, 0, gameProperties.gameWidth, gameProperties.gameHeight, true, true, true, true, true);
 		game.physics.startSystem(Phaser.Physics.P2JS);
 		
 		
@@ -307,8 +307,8 @@ main.prototype = {
 	update: function() {
 		if (gameProperties.player_in_game == true) {
 			
-			player_position_string = ((player.position.x)|0) + " " + ((player.position.y)|0);
-			label_position.setText(player_position_string);
+			//player_position_string = ((player.position.x)|0) + " " + ((player.position.y)|0);
+			//label_position.setText(player_position_string);
 
 			if (player.position.x < 0 || player.position.x > 4000) {
 				console.log('collide');
@@ -344,7 +344,7 @@ function goLeft() {
 		directionData = {
 			direction_x: -1, direction_y: 0
 		}
-		//player.lines.push(player.line);
+		player.lines.push(player.line);
 		player.way_point.push([player.position.x, player.position.y]);
 
 		var start_point = {
@@ -354,7 +354,12 @@ function goLeft() {
 
 		//player.line = game.add.graphics(player.position.x, player.position.y);
 	
-		
+		player.line = game.add.graphics(0,0);
+		player.line.lineStyle(10, 0x2366);
+		player.line.beginFill(0x2366);
+		player.line.moveTo(start_point.x,start_point.y);
+		player.line.lineTo(player.position.x, player.position.y);
+		player.line.endFill();
 		//
 
 		socket.emit('input_fired', directionData);
@@ -369,14 +374,19 @@ function goRight() {
 		directionData = {
 			direction_x: 1, direction_y: 0
 		}
-		//player.lines.push(player.line);
+		player.lines.push(player.line);
 		player.way_point.push([player.position.x, player.position.y]);
 
 		var start_point = {
 			x: player.way_point[player.way_point.length - 1][0],
 			y: player.way_point[player.way_point.length - 1][1]
 		}
-		
+		player.line = game.add.graphics(0,0);
+		player.line.lineStyle(10, 0x2366);
+		player.line.beginFill(0x2366);
+		player.line.moveTo(start_point.x,start_point.y);
+		player.line.lineTo(player.position.x, player.position.y);
+		player.line.endFill();
 		socket.emit('input_fired', directionData);
 	}
 }
@@ -389,7 +399,7 @@ function goDown() {
 		directionData = {
 			direction_x: 0, direction_y: 1
 		}
-		//player.lines.push(player.line);
+		player.lines.push(player.line);
 		player.way_point.push([player.position.x, player.position.y]);
 
 		var start_point = {
@@ -397,7 +407,12 @@ function goDown() {
 			y: player.way_point[player.way_point.length - 1][1]
 		}
 
-		
+		player.line = game.add.graphics(0,0);
+		player.line.lineStyle(10, 0x2366);
+		player.line.beginFill(0x2366);
+		player.line.moveTo(start_point.x,start_point.y);
+		player.line.lineTo(player.position.x, player.position.y);
+		player.line.endFill();
 		
 		socket.emit('input_fired', directionData);
 	}
@@ -411,14 +426,19 @@ function goUp() {
 		directionData = {
 			direction_x: 0, direction_y: -1
 		}
-		//player.lines.push(player.line);
+		player.lines.push(player.line);
 		player.way_point.push([player.position.x, player.position.y]);
 
 		var start_point = {
 			x: player.way_point[player.way_point.length - 1][0],
 			y: player.way_point[player.way_point.length - 1][1]
 		}
-		 
+		player.line = game.add.graphics(0,0);
+		player.line.lineStyle(10, 0x2366);
+		player.line.beginFill(0x2366);
+		player.line.moveTo(start_point.x,start_point.y);
+		player.line.lineTo(player.position.x, player.position.y);
+		player.line.endFill();
 		socket.emit('input_fired', directionData);
 	}
 }
