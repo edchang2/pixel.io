@@ -97,19 +97,18 @@ function onNewPlayer(data) {
 		player_info = {
 			x: existing_player.x,
 			y: existing_player.y,
-			territory: existing_player.territory,
 			id: existing_player.id,
 			direction_x: existing_player.direction_x,
 			direction_y: existing_player.direction_y,
 			username: existing_player.username
 		};
-		this.emit('new_enemyPlayer', player_list);
+		this.emit('new_enemyPlayer', player_info);
 	}
 
 	//tell every body about this new player
 	this.broadcast.emit('new_enemyPlayer', {
 		id: new_player.id, x: new_player.x, y: new_player.y, 
-		direction_x: new_player.direction_x, direction_y: new_player.direction_y, territory: new_player.territory,
+		direction_x: new_player.direction_x, direction_y: new_player.direction_y,
 		username: new_player.username
 	});
 
@@ -191,6 +190,7 @@ function onClientDisconnect() {
 	if (to_delete) {
 		player_list.splice(player_list.indexOf(to_delete), 1)
 	}
+	this.emit('remove_player', {id:this.id})
 	console.log('disconnect');
 }
 

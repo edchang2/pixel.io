@@ -1,14 +1,14 @@
 canvas_width = window.innerWidth * window.devicePixelRatio;
 canvas_heigth = window.innerHeight * window.devicePixelRatio;
 
-game = new Phaser.Game(1000,1000, Phaser.CANVAS, 'gameDiv');
+game = new Phaser.Game(2000,2000, Phaser.CANVAS, 'gameDiv');
 
 //list of enemies
 var enemies = [];
 
 var gameProperties = {
-	gameWidth: 1000,
-	gameHeight: 1000,
+	gameWidth: 2000,
+	gameHeight: 2000,
 	game_elemnt: "gameDiv",
 	in_game: false,
 	player_in_game: false,
@@ -45,6 +45,8 @@ function onRemovePlayer(data) {
 		return;
 	}
 
+	removePlayer.enemy.clear();
+
 	removePlayer.player.destroy();
 	enemies.splice(enemies.indexOf(removePlayer), 1);
 }
@@ -79,17 +81,14 @@ function createPlayer(data) {
 	player.lineStyle(0);
 	player.beginFill(0x2366, 0.5);
 	console.log(player.x + " " + player.y);
-	player.drawRect(0, 0, 50, 50);
+	player.drawRect(0, 0, 0, 0);
 	player.endFill();
 	game.physics.p2.setBoundsToWorld(true, true, true, true, true);
 	player.body.setCollisionGroup(playerCollisionGroup);
 	player.body.collides([playerCollisionGroup, game.physics.p2.boundsCollisionGroup]);
 
 	//draw path for the player 
-	var start_point = {
-		x: player.way_point[player.way_point.length - 1][0],
-		y: player.way_point[player.way_point.length - 1][1]
-	}
+	
 
 	player.line = game.add.graphics(0,0);
 	player.line.lineStyle(10, 0x2366);
@@ -98,47 +97,28 @@ function createPlayer(data) {
 	player.line.lineTo(player.position.x, player.position.y);
 	player.line.endFill();
 
+	
+	//player.body.setRectangle(50,50);
+
 	//add some label
 	//var player_position_string = (player.position.x)|0 + " " + (player.position.y)|0;
 	//label_position = game.add.text(player.position.x, player.position.y, player_position_string, style);
 	//player.addChild(label_position);
 
 	//enable collision and when it makes a contact with another body, call player_coll
+
+
 	player.body.createBodyCallback(game.physics.p2.boundsCollisionGroup, play_col, this);
 	game.physics.p2.setImpactEvents(true);
 
-	wallL = game.add.graphics(0,0);
-	wallL.lineStyle(10, 0x2366);
-	wallL.beginFill(0x2366);
-	wallL.moveTo(0,0);
-	wallL.lineTo(0, 1000);
-	wallL.endFill();
-
-	wallBottom = game.add.graphics(0,0);
-	wallBottom.lineStyle(10, 0x2366);
-	wallBottom.beginFill(0x2366);
-	wallBottom.moveTo(0,1000);
-	wallBottom.lineTo(1000, 1000);
-	wallBottom.endFill();
-	wallRight = game.add.graphics(0,0);
-	wallRight.lineStyle(10, 0x2366);
-	wallRight.beginFill(0x2366);
-	wallRight.moveTo(1000,0);
-	wallRight.lineTo(1000, 1000);
-	wallRight.endFill();
-	wallTop = game.add.graphics(0,0);
-	wallTop.lineStyle(10, 0x2366);
-	wallTop.beginFill(0x2366);
-	wallTop.moveTo(0,0);
-	wallTop.lineTo(1000, 0);
-	wallTop.endFill();
+	
 }
 
 function play_col(body1, body2) {
 	console.log("collide");
 }
 
-var enemy_player = function (id, startx, starty, start_direction_x, start_direction_y, start_territory) {
+var enemy_player = function (id, startx, starty, start_direction_x, start_direction_y) {
 	//set initial values given by the server
 	this.x = startx;
 	this.y = starty;
@@ -148,14 +128,32 @@ var enemy_player = function (id, startx, starty, start_direction_x, start_direct
 	this.direction_x = start_direction_x;
 	this.direction_y = start_direction_y;
 
-	this.territory = start_territory;
-
 	//add code here to create enemy player graphics
 
+	this.enemy = game.add.graphics(startx, starty);
+	game.physics.p2.enableBody(this.enemy, false);
+
+	this.enemy.way_point = [];
+	this.enemy.way_point.push([this.x, this.y]);
+	this.enemy.lines = [];
+
 	//don't forget to add body to physics, may need to make modifications
-	game.physics.p2.enableBody(this.player, true);
-	this.player.body.clearShapes();
-	this.player.body.data.shapes[0].sensor = true;
+	
+
+	this.enemy.body.collideWorldBounds = false;
+	this.enemy.body.fixedRotation = true;
+	this.enemy.body.damping = 0;
+	this.enemy.body.mass = 10;
+
+	this.enemy.line = game.add.graphics(0,0);
+	this.enemy.line.lineStyle(10, 0x2366);
+	this.enemy.line.beginFill(0x2366);
+	this.enemy.line.moveTo(player.x,player.y);
+	this.enemy.line.lineTo(player.position.x, player.position.y);
+	this.enemy.line.endFill();
+
+	
+
 }
 
 //Server will tell us when a new enemy player connects to the server.
@@ -163,7 +161,7 @@ var enemy_player = function (id, startx, starty, start_direction_x, start_direct
 function onNewEnemyPlayer(data) {
 	//enemy object
 	console.log(data);
-	var new_enemy = new enemy_player(data.id, data.x, data.y, data.direction_x, data.direction_y, data.territory);
+	var new_enemy = new enemy_player(data.id, data.x, data.y, data.direction_x, data.direction_y);
 	enemies.push(new_enemy);
 }
 
@@ -172,20 +170,27 @@ function onNewEnemyPlayer(data) {
 function onEnemyMove(data) {
 	var movePlayer = findplayerbyid(data.id);
 
-	if (!movePlayer) {
-		return;
-	}
+	movePlayer.enemy.body.velocity.x = data.direction_x * gameProperties.speed;
+	movePlayer.enemy.body.velocity.y = data.direction_y * gameProperties.speed;
 
-	var newPointer = {
-		x: data.x,
-		y: data.y
-	}
+	movePlayer.enemy.way_point.push([movePlayer.enemy.position.x, movePlayer.enemy.position.y]);
 
-	//check if the server enemy size is not equivalent to the client
-	if (data.size != movePlayer.player.body_size) {
-		//do something to correct this
-	}
+	movePlayer.enemy.lines.push(movePlayer.enemy.line);
 
+		var start = {
+			x: movePlayer.enemy.way_point[movePlayer.enemy.way_point.length - 1][0],
+			y: movePlayer.enemy.way_point[movePlayer.enemy.way_point.length - 1][1]
+		}
+
+		//player.line = game.add.graphics(player.position.x, player.position.y);
+	
+		movePlayer.enemy.line = game.add.graphics(0,0);
+		movePlayer.enemy.line.lineStyle(10, 0x2366);
+		movePlayer.enemy.line.beginFill(0x2366);
+		movePlayer.enemy.line.moveTo(start.x,start.y);
+		movePlayer.enemy.line.lineTo(movePlayer.enemy.position.x, movePlayer.enemy.position.y);
+		movePlayer.enemy.line.endFill();
+		//
 	//add code here to update enemy position and territory
 }
 
@@ -244,7 +249,7 @@ main.prototype = {
 	},
 	preload: function() {
 		game.stage.disableVisibilityChange = true;
-		game.scale.scaleMode = Phaser.ScaleManager.AUTO;
+		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
 		//game.world.setBounds(0, 0, gameProperties.gameWidth, gameProperties.gameHeight, true, true, true, true, true);
 		game.physics.startSystem(Phaser.Physics.P2JS);
 		
@@ -255,7 +260,31 @@ main.prototype = {
 		game.physics.p2.gravity.x = 0;
 		game.physics.p2.applyGravity = false;
 		//game.physics.p2.enableBody(game.physics.p2.walls, false);
-		
+		game.wallL = game.add.graphics(0,0);
+		game.wallL.lineStyle(10, 0x2366);
+		game.wallL.beginFill(0x2366);
+		game.wallL.moveTo(0,0);
+		game.wallL.lineTo(0, gameProperties.gameHeight);
+		game.wallL.endFill();
+
+		game.wallBottom = game.add.graphics(0,0);
+		game.wallBottom.lineStyle(10, 0x2366);
+		game.wallBottom.beginFill(0x2366);
+		game.wallBottom.moveTo(0,gameProperties.gameHeight);
+		game.wallBottom.lineTo(gameProperties.gameWidth, gameProperties.gameHeight);
+		game.wallBottom.endFill();
+		game.wallRight = game.add.graphics(0,0);
+		game.wallRight.lineStyle(10, 0x2366);
+		game.wallRight.beginFill(0x2366);
+		game.wallRight.moveTo(gameProperties.gameWidth,0);
+		game.wallRight.lineTo(gameProperties.gameWidth, gameProperties.gameHeight);
+		game.wallRight.endFill();
+		game.wallTop = game.add.graphics(0,0);
+		game.wallTop.lineStyle(10, 0x2366);
+		game.wallTop.beginFill(0x2366);
+		game.wallTop.moveTo(0,0);
+		game.wallTop.lineTo(gameProperties.gameWidth, 0);
+		game.wallTop.endFill();
 		
 	},
 	create: function() {
@@ -332,6 +361,19 @@ main.prototype = {
 			player.line.moveTo(start_point.x, start_point.y);
 			player.line.lineTo(player.position.x, player.position.y);
 			player.line.endFill();
+			
+			for (var i = 0; i < enemies.length; i++) {
+				enemies[i].enemy.line.clear();
+				enemies[i].enemy.line.lineStyle(10, 0x2366);
+				enemies[i].enemy.line.beginFill(0x2366);
+				var start = {
+					x: enemies[i].enemy.way_point[enemies[i].enemy.way_point.length - 1][0],
+					y: enemies[i].enemy.way_point[enemies[i].enemy.way_point.length - 1][1]
+				}
+				enemies[i].enemy.line.moveTo(start.x, start.y);
+				enemies[i].enemy.line.lineTo(enemies[i].enemy.position.x, enemies[i].enemy.position.y);
+				enemies[i].enemy.line.endFill();
+			}
 		}
 	}
 };
@@ -361,6 +403,7 @@ function goLeft() {
 		player.line.lineTo(player.position.x, player.position.y);
 		player.line.endFill();
 		//
+		
 
 		socket.emit('input_fired', directionData);
 	}
@@ -387,6 +430,7 @@ function goRight() {
 		player.line.moveTo(start_point.x,start_point.y);
 		player.line.lineTo(player.position.x, player.position.y);
 		player.line.endFill();
+		
 		socket.emit('input_fired', directionData);
 	}
 }
@@ -439,6 +483,7 @@ function goUp() {
 		player.line.moveTo(start_point.x,start_point.y);
 		player.line.lineTo(player.position.x, player.position.y);
 		player.line.endFill();
+		
 		socket.emit('input_fired', directionData);
 	}
 }
