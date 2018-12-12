@@ -58,10 +58,6 @@ setInterval(heartbeat, 1000/5);
 
 function heartbeat() {
 	//movement_handler();
-	var info = {
-		move: true
-	}
-	this.emit('move', info);
 }
 
 function movement_handler() {
@@ -145,6 +141,8 @@ function onInputFired(data) {
 		direction_x: data.direction_x,
 		direction_y: data.direction_y
 	}
+
+	console.log(data.direction_x + " " + data.direction_y);
 
 	//tell player about movement
 	this.emit('input_received', info);

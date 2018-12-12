@@ -1,18 +1,23 @@
 canvas_width = window.innerWidth * window.devicePixelRatio;
 canvas_heigth = window.innerHeight * window.devicePixelRatio;
 
-game = new Phaser.Game(canvas_width, canvas_heigth, Phaser.CANVAS, 'gameDiv');
+game = new Phaser.Game(1000,1000, Phaser.CANVAS, 'gameDiv');
 
 //list of enemies
 var enemies = [];
 
 var gameProperties = {
-	gameWidth: 4000,
-	gameHeight: 4000,
+	gameWidth: 1000,
+	gameHeight: 1000,
 	game_elemnt: "gameDiv",
 	in_game: false,
+	player_in_game: false,
 	speed: 200
 };
+
+var style = {
+	font: "30px Arial", fill: "#ffffff" 
+}
 
 var main = function (game) {
 	//nothing goes here
@@ -24,9 +29,9 @@ function onSocketConnected(data) {
 	var username = data.username;
 	socket.emit('new_player', {
 		username: data.username,
-		x: 0,
-		y: 0,
-		direction_x: 0,
+		x: getRndInteger(10, 790),
+		y: getRndInteger(10, 790),
+		direction_x: getRndInteger(-1, 1),
 		direction_y: 0
 	});
 }
@@ -45,6 +50,11 @@ function onRemovePlayer(data) {
 }
 
 function createPlayer(data) {
+
+	gameProperties.player_in_game = true;
+
+	playerCollisionGroup = game.physics.p2.createCollisionGroup();
+
 	player = game.add.graphics(0, 0);
 
 	//a player have
@@ -53,20 +63,79 @@ function createPlayer(data) {
 	player.direction_x = data.start_direction_x; //direction of the player
 	player.direction_y = data.start_direction_y;
 	player.territory = data.start_territory; //area taken by the player * need to figure out the data structure
+
+	//waypoint
+	player.way_point = [];
+	player.way_point.push([player.x, player.y]);
+	player.lines = [];
+
 	//add code here to create player graphics and values
-	game.physics.p2.enableBody(player, true);
+	game.physics.p2.enableBody(player, false);
+	//player.body.setRectangle(50,50);
+	player.body.collideWorldBounds = false;
 	player.body.fixedRotation = true;
 	player.body.damping = 0;
-	player.body.mass=0.1
+	player.body.mass = 10;
 	player.lineStyle(0);
 	player.beginFill(0x2366, 0.5);
 	console.log(player.x + " " + player.y);
 	player.drawRect(player.x, player.y, 50, 50);
 	player.endFill();
+	game.physics.p2.setBoundsToWorld(true, true, true, true, true);
+	player.body.setCollisionGroup(playerCollisionGroup);
+	player.body.collides([playerCollisionGroup, game.physics.p2.boundsCollisionGroup]);
+
+	//draw path for the player 
+	var start_point = {
+		x: player.way_point[player.way_point.length - 1][0],
+		y: player.way_point[player.way_point.length - 1][1]
+	}
+
+	player.line = game.add.graphics(0,0);
+	player.line.lineStyle(10, 0x2366);
+	player.line.beginFill(0x2366);
+	player.line.moveTo(player.x,player.y);
+	player.line.lineTo(player.position.x, player.position.y);
+	player.line.endFill();
+
+	//add some label
+	var player_position_string = (player.position.x)|0 + " " + (player.position.y)|0;
+	label_position = game.add.text(player.position.x, player.position.y, player_position_string, style);
+	player.addChild(label_position);
 
 	//enable collision and when it makes a contact with another body, call player_coll
-	//player.body.onBeginContact.add(player_coll, this);
+	player.body.createBodyCallback(game.physics.p2.boundsCollisionGroup, play_col, this);
+	game.physics.p2.setImpactEvents(true);
 
+	wallL = game.add.graphics(0,0);
+	wallL.lineStyle(10, 0x2366);
+	wallL.beginFill(0x2366);
+	wallL.moveTo(0,0);
+	wallL.lineTo(0, 1000);
+	wallL.endFill();
+
+	wallBottom = game.add.graphics(0,0);
+	wallBottom.lineStyle(10, 0x2366);
+	wallBottom.beginFill(0x2366);
+	wallBottom.moveTo(0,1000);
+	wallBottom.lineTo(1000, 1000);
+	wallBottom.endFill();
+	wallRight = game.add.graphics(0,0);
+	wallRight.lineStyle(10, 0x2366);
+	wallRight.beginFill(0x2366);
+	wallRight.moveTo(1000,0);
+	wallRight.lineTo(1000, 1000);
+	wallRight.endFill();
+	wallTop = game.add.graphics(0,0);
+	wallTop.lineStyle(10, 0x2366);
+	wallTop.beginFill(0x2366);
+	wallTop.moveTo(0,0);
+	wallTop.lineTo(1000, 0);
+	wallTop.endFill();
+}
+
+function play_col(body1, body2) {
+	console.log("collide");
 }
 
 var enemy_player = function (id, startx, starty, start_direction_x, start_direction_y, start_territory) {
@@ -120,13 +189,23 @@ function onEnemyMove(data) {
 	//add code here to update enemy position and territory
 }
 
+//This is where we use the socket id. 
+//Search through enemies list to find the right enemy of the id.
+function findplayerbyid (id) {
+	for (var i = 0; i < enemies.length; i++) {
+		if (enemies[i].id == id) {
+			return enemies[i]; 
+		}
+	}
+}
+
 //receiving the calculated position of this player from the server, make updates
 function onInputReceived(data) {
 	//we're forming a new pointer with the new position
 
 	//add code here to update player position and territory
-	player.body.velocity.x = data.velocity_x;
-	player.body.velocity.y = data.velocity_y;
+	player.body.velocity.x = data.direction_x * gameProperties.speed;
+	player.body.velocity.y = data.direction_y * gameProperties.speed;
 }
 
 //receiving territory from the server, make updates
@@ -165,12 +244,19 @@ main.prototype = {
 	},
 	preload: function() {
 		game.stage.disableVisibilityChange = true;
-		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
-		game.world.setBounds(0, 0, gameProperties.gameWidth, gameProperties.gameHeight);
+		game.scale.scaleMode = Phaser.ScaleManager.AUTO;
+		game.world.setBounds(0, 0, gameProperties.gameWidth, gameProperties.gameHeight, true, true, true, true, true);
 		game.physics.startSystem(Phaser.Physics.P2JS);
+		
+		
+		game.physics.p2.updateBoundsCollisionGroup();
+		game.physics.p2.restitution = 0;
 		game.physics.p2.gravity.y = 0;
+		game.physics.p2.gravity.x = 0;
 		game.physics.p2.applyGravity = false;
-		game.physics.p2.enableBody(game.physics.p2.walls, true);
+		//game.physics.p2.enableBody(game.physics.p2.walls, false);
+		
+		
 	},
 	create: function() {
 		game.stage.backgroundColor = 0xE1A193;
@@ -219,43 +305,122 @@ main.prototype = {
 		}
 	},
 	update: function() {
+		if (gameProperties.player_in_game == true) {
+			
+			player_position_string = ((player.position.x)|0) + " " + ((player.position.y)|0);
+			label_position.setText(player_position_string);
+
+			if (player.position.x < 0 || player.position.x > 4000) {
+				console.log('collide');
+				//removePlayer(player.id);
+			}
+			if (player.position.y < 0 || player.position.y > 4000) {
+				console.log('collide');
+				//removePlayer(player.id);
+			}
+
+			//draw path for the player
+			var start_point = {
+				x: player.way_point[player.way_point.length - 1][0],
+				y: player.way_point[player.way_point.length - 1][1]
+			}
+
+			//console.log("line starts" + start_point.x + " " + start_point.y);
+			player.line.clear();
+			player.line.lineStyle(10, 0x2366);
+			player.line.beginFill(0x2366);
+			player.line.moveTo(start_point.x, start_point.y);
+			player.line.lineTo(player.position.x, player.position.y);
+			player.line.endFill();
+		}
 	}
 };
 
 function goLeft() {
 	console.log('left');
 	//Send up direction to the server
-	directionData = {
-		direction_x: -1, direction_y: 0
+	if (directionData.direction_x == -1 && directionData.direction_y == 0) {}
+	else {
+		directionData = {
+			direction_x: -1, direction_y: 0
+		}
+		//player.lines.push(player.line);
+		player.way_point.push([player.position.x, player.position.y]);
+
+		var start_point = {
+			x: player.way_point[player.way_point.length - 1][0],
+			y: player.way_point[player.way_point.length - 1][1]
+		}
+
+		//player.line = game.add.graphics(player.position.x, player.position.y);
+	
+		
+		//
+
+		socket.emit('input_fired', directionData);
 	}
-	socket.emit('input_fired', directionData);
 }
 
 function goRight() {
 	console.log('right');
 	//Send up direction to the server
-	directionData = {
-		direction_x: 1, direction_y: 0
+	if (directionData.direction_x == 1 && directionData.direction_y == 0) {}
+	else {
+		directionData = {
+			direction_x: 1, direction_y: 0
+		}
+		//player.lines.push(player.line);
+		player.way_point.push([player.position.x, player.position.y]);
+
+		var start_point = {
+			x: player.way_point[player.way_point.length - 1][0],
+			y: player.way_point[player.way_point.length - 1][1]
+		}
+		
+		socket.emit('input_fired', directionData);
 	}
-	socket.emit('input_fired', directionData);
 }
 
 function goDown() {
 	console.log('down');
 	//Send up direction to the server
-	directionData = {
-		direction_x: 0, direction_y: 1
+	if (directionData.direction_x == 0 && directionData.direction_y == 1) {}
+	else {
+		directionData = {
+			direction_x: 0, direction_y: 1
+		}
+		//player.lines.push(player.line);
+		player.way_point.push([player.position.x, player.position.y]);
+
+		var start_point = {
+			x: player.way_point[player.way_point.length - 1][0],
+			y: player.way_point[player.way_point.length - 1][1]
+		}
+
+		
+		
+		socket.emit('input_fired', directionData);
 	}
-	socket.emit('input_fired', directionData);
 }
 
 function goUp() {
 	console.log('up');
 	//Send up direction to the server
-	directionData = {
-		direction_x: 0, direction_y: -1
+	if (directionData.direction_x == 0 && directionData.direction_y == -1) {}
+	else {
+		directionData = {
+			direction_x: 0, direction_y: -1
+		}
+		//player.lines.push(player.line);
+		player.way_point.push([player.position.x, player.position.y]);
+
+		var start_point = {
+			x: player.way_point[player.way_point.length - 1][0],
+			y: player.way_point[player.way_point.length - 1][1]
+		}
+		 
+		socket.emit('input_fired', directionData);
 	}
-	socket.emit('input_fired', directionData);
 }
 
 var gameBootstrapper = {
@@ -265,5 +430,9 @@ var gameBootstrapper = {
 		game.state.start('login');
     }
 };
+
+function getRndInteger(min, max) {
+	return Math.floor(Math.random() * (max - min + 1) ) + min;
+}
 
 gameBootstrapper.init("gameDiv");
